@@ -24,21 +24,21 @@ def read_and_verify_contacts(contact_file_path: str):
         try:
             contacts = list(csv.reader(contacts_list))
         except csv.Error as e:
-            return print(e)
+            return sys.stdout.write(e)
     if not contacts:
-        return print('File is empty')
+        return sys.stdout.write('File is empty')
     for contact in contacts:
         if len(contact) < 3 or any(value == '' for value in contact):
-            return print('Some contact has missing values')
+            return sys.stdout.write('Some contact has missing values')
         try:
             date = datetime.strptime(contact[2][-5:], '%m-%d').date()
         except ValueError:
-            return print(f'Incorrect birthday date for {contact[0]}!')
+            return sys.stdout.write(f'Incorrect birthday date for {contact[0]}!')
         if len(contact[2]) == 10:
             date = datetime.strptime(contact[2], '%Y-%m-%d').date()
             if date > datetime.today().date():
-                return print(f'{contact[0]} is not born yet! Check the date of birth of this contact.')
-    print('Contact file is valid')
+                return sys.stdout.write(f'{contact[0]} is not born yet! Check the date of birth of this contact.')
+    sys.stdout.write('Contact file is valid\n')
     return contacts
 
 
@@ -74,10 +74,21 @@ def send_email(email_address, subject, email):
             continue
 
 
-def main(file_path, action):
+def main(file_path):
     if not os.path.exists(file_path):
         return print('ERROR: File doesn\'t exist')
     if file_path.endswith('csv'):
+        sys.stdout.write('What you would like to do:\n'
+                         '1.Validate the persons birthday data file\n'
+                         'or\n'
+                         '2.Check for upcoming birthdays and send emails if there are any.\n\n'
+                         'Choose 1 or 2: ')
+
+        action = input()
+        while action != '1' and action != '2':
+            sys.stdout.write('Please choose either 1 or 2\n')
+            action = input()
+
         if action == '1':
             contacts = read_and_verify_contacts(file_path)
         elif action == '2':
@@ -96,13 +107,12 @@ def main(file_path, action):
                         email_address = recipient[1]
                         subject, email = build_email(name, name_of_birthday_person, birthday_date, amount_of_days)
                         send_email(email_address, subject, email)
-                print('Emails sent successfully')
+                sys.stdout.write('Emails sent successfully')
     else:
         return print('ERROR: Wrong data format file')
 
 
 if __name__ == '__main__':
     path_arg = sys.argv[1]
-    action = sys.argv[2]
 
-    main(path_arg, action)
+    main(path_arg)
